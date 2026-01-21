@@ -1,136 +1,276 @@
 import { useState } from 'react';
-import { LogIn, User, Lock, Loader2 } from 'lucide-react';
-import { API_ENDPOINTS, apiCall } from '@/config/api';
+import { motion } from 'motion/react';
+import { Truck, Shield, Users, Package, MapPin, ChevronRight, ShoppingBag } from 'lucide-react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { toast } from 'sonner';
 
-interface LoginProps {
-  onLogin: (user: any) => void;
+interface LoginScreenProps {
+  onLogin: (role: string, userData?: any) => void;
 }
 
-export default function Login({ onLogin }: LoginProps) {
+// Demo credentials for offline mode
+const DEMO_USERS = {
+  'admin@demo.com': { password: 'admin123', role: 'admin', name: 'Admin User' },
+  'manager@demo.com': { password: 'manager123', role: 'manager', name: 'Manager User' },
+  'supplier@demo.com': { password: 'supplier123', role: 'supplier', name: 'Supplier User' },
+  'customer@demo.com': { password: 'customer123', role: 'customer', name: 'Customer User' },
+  'driver@demo.com': { password: 'driver123', role: 'driver', name: 'Driver User' },
+};
+
+const roles = [
+  { 
+    id: 'admin', 
+    label: 'Administrator', 
+    icon: Shield, 
+    gradient: 'from-purple-500 via-pink-500 to-red-500',
+    color: 'bg-purple-600'
+  },
+  { 
+    id: 'manager', 
+    label: 'Manager', 
+    icon: Users, 
+    gradient: 'from-blue-500 via-cyan-500 to-teal-500',
+    color: 'bg-blue-600'
+  },
+  { 
+    id: 'supplier', 
+    label: 'Supplier', 
+    icon: Package, 
+    gradient: 'from-orange-500 via-amber-500 to-yellow-500',
+    color: 'bg-orange-600'
+  },
+  { 
+    id: 'customer', 
+    label: 'Customer', 
+    icon: ShoppingBag, 
+    gradient: 'from-indigo-500 via-purple-500 to-pink-500',
+    color: 'bg-indigo-600'
+  },
+  { 
+    id: 'driver', 
+    label: 'Driver', 
+    icon: Truck, 
+    gradient: 'from-green-500 via-emerald-500 to-teal-500',
+    color: 'bg-green-600'
+  },
+];
+
+export function LoginScreen({ onLogin }: LoginScreenProps) {
+  const [selectedRole, setSelectedRole] = useState('');
+  const [showLoginForm, setShowLoginForm] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRoleSelect = (roleId: string) => {
+    setSelectedRole(roleId);
+    setShowLoginForm(true);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setLoading(true);
+    setIsLoading(true);
+
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-      const data = await apiCall(API_ENDPOINTS.login, {
-        method: 'POST',
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (data.success) {
-        onLogin(data.user);
-      } else {
-        setError(data.message || 'Invalid credentials');
+      // Check demo credentials first (offline mode)
+      const demoUser = DEMO_USERS[username as keyof typeof DEMO_USERS];
+      
+      if (demoUser && demoUser.password === password) {
+        toast.success(`Welcome, ${demoUser.name}!`);
+        onLogin(demoUser.role, { 
+          email: username, 
+          name: demoUser.name,
+          role: demoUser.role 
+        });
+        return;
       }
-    } catch (err) {
-      setError('Failed to connect to server. Please check your connection.');
-      console.error('Login error:', err);
+
+      // If not demo credentials, show error (API mode would go here later)
+      toast.error('Invalid credentials. Use demo accounts: admin@demo.com / admin123');
+      
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error('Login failed. Please try again.');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  const selectedRoleData = roles.find(r => r.id === selectedRole);
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="w-full max-w-md">
-        {/* Logo & Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mb-4 shadow-lg">
-            <LogIn className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-            SwiftTrack Pro
-          </h1>
-          <p className="text-gray-600 text-lg">Delivery & Logistics Management System</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-4 overflow-hidden relative">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute rounded-full mix-blend-multiply filter blur-xl opacity-20"
+            style={{
+              background: `linear-gradient(${Math.random() * 360}deg, #8b5cf6, #ec4899, #3b82f6)`,
+              width: Math.random() * 300 + 100,
+              height: Math.random() * 300 + 100,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              x: [0, Math.random() * 100 - 50],
+              y: [0, Math.random() * 100 - 50],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: Math.random() * 10 + 10,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+          />
+        ))}
+      </div>
 
-        {/* Login Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Welcome Back</h2>
+      {/* Main content */}
+      <div className="relative z-10 w-full max-w-6xl">
+        <motion.div
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-12"
+        >
+          <motion.div
+            className="inline-flex items-center gap-3 mb-4"
+            whileHover={{ scale: 1.05 }}
+          >
+            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-3 rounded-2xl">
+              <MapPin className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400">
+              SwiftTrack Pro
+            </h1>
+          </motion.div>
+          <p className="text-xl text-purple-200">UK Delivery & Logistics Management System</p>
+        </motion.div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Username Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                  placeholder="Enter your username"
-                  required
-                />
+        {!showLoginForm ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            {roles.map((role, index) => {
+              const Icon = role.icon;
+              return (
+                <motion.div
+                  key={role.id}
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ scale: 1.05, rotate: 2 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleRoleSelect(role.id)}
+                  className="cursor-pointer"
+                >
+                  <div className="relative group">
+                    <div className={`absolute -inset-1 bg-gradient-to-r ${role.gradient} rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-300`}></div>
+                    <div className="relative bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-8 hover:bg-white/20 transition-all duration-300">
+                      <div className={`${role.color} w-16 h-16 rounded-xl flex items-center justify-center mb-4 mx-auto shadow-lg`}>
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-white text-center mb-2">{role.label}</h3>
+                      <div className="flex items-center justify-center text-purple-300 text-sm">
+                        <span>Sign in</span>
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md mx-auto"
+          >
+            <div className="relative group">
+              <div className={`absolute -inset-1 bg-gradient-to-r ${selectedRoleData?.gradient} rounded-3xl blur opacity-25 group-hover:opacity-50 transition duration-300`}></div>
+              <div className="relative bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl p-8">
+                <button
+                  onClick={() => setShowLoginForm(false)}
+                  className="text-purple-300 hover:text-white mb-4 flex items-center gap-2 transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4 rotate-180" />
+                  Back to roles
+                </button>
+                
+                <div className="text-center mb-8">
+                  {selectedRoleData && (
+                    <>
+                      <div className={`${selectedRoleData.color} w-20 h-20 rounded-2xl flex items-center justify-center mb-4 mx-auto shadow-xl`}>
+                        <selectedRoleData.icon className="w-10 h-10 text-white" />
+                      </div>
+                      <h2 className="text-3xl font-bold text-white mb-2">{selectedRoleData.label} Login</h2>
+                      <p className="text-purple-200">Enter your credentials to continue</p>
+                    </>
+                  )}
+                </div>
+
+                <form onSubmit={handleLogin} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-white">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-purple-300"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-white">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-purple-300"
+                      required
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    className={`w-full ${selectedRoleData?.color} hover:opacity-90 text-white h-12 text-lg shadow-lg`}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? 'Loading...' : 'Sign In'}
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </form>
+
+                {/* Demo Credentials Helper */}
+                <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-xl">
+                  <p className="text-purple-200 text-sm font-semibold mb-2">Demo Credentials:</p>
+                  <div className="space-y-1 text-xs text-purple-300">
+                    <p><strong className="text-purple-100">Admin:</strong> admin@demo.com / admin123</p>
+                    <p><strong className="text-purple-100">Manager:</strong> manager@demo.com / manager123</p>
+                    <p><strong className="text-purple-100">Supplier:</strong> supplier@demo.com / supplier123</p>
+                    <p><strong className="text-purple-100">Customer:</strong> customer@demo.com / customer123</p>
+                    <p><strong className="text-purple-100">Driver:</strong> driver@demo.com / driver123</p>
+                  </div>
+                </div>
               </div>
             </div>
-
-            {/* Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                  placeholder="Enter your password"
-                  required
-                />
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {error}
-              </div>
-            )}
-
-            {/* Login Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5 mr-2" />
-                  Sign In
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-xs font-semibold text-gray-700 mb-2">Demo Credentials:</p>
-            <div className="text-xs text-gray-600 space-y-1">
-              <p><strong>Supplier:</strong> supplier1 / pass123</p>
-              <p><strong>Management:</strong> manager1 / pass123</p>
-              <p><strong>Admin:</strong> admin1 / pass123</p>
-              <p><strong>Customer:</strong> customer1 / pass123</p>
-              <p><strong>Driver:</strong> driver1 / pass123</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <p className="text-center text-gray-500 text-sm mt-6">
-          © 2024 SwiftTrack Pro. All rights reserved.
-        </p>
+          </motion.div>
+        )}
       </div>
     </div>
   );
