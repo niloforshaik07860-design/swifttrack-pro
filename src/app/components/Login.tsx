@@ -10,15 +10,6 @@ interface LoginScreenProps {
   onLogin: (role: string, userData?: any) => void;
 }
 
-// Demo credentials for offline mode
-const DEMO_USERS = {
-  'admin@demo.com': { password: 'admin123', role: 'admin', name: 'Admin User' },
-  'manager@demo.com': { password: 'manager123', role: 'manager', name: 'Manager User' },
-  'supplier@demo.com': { password: 'supplier123', role: 'supplier', name: 'Supplier User' },
-  'customer@demo.com': { password: 'customer123', role: 'customer', name: 'Customer User' },
-  'driver@demo.com': { password: 'driver123', role: 'driver', name: 'Driver User' },
-};
-
 const roles = [
   { 
     id: 'admin', 
@@ -77,21 +68,19 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-      // Check demo credentials first (offline mode)
-      const demoUser = DEMO_USERS[username as keyof typeof DEMO_USERS];
-      
-      if (demoUser && demoUser.password === password) {
-        toast.success(`Welcome, ${demoUser.name}!`);
-        onLogin(demoUser.role, { 
-          email: username, 
-          name: demoUser.name,
-          role: demoUser.role 
+      // Simple login check - just username "admin" and password "admin123"
+      if (username === 'admin' && password === 'admin123') {
+        toast.success('Welcome, Administrator!');
+        onLogin(selectedRole, { 
+          username: username, 
+          name: 'Administrator',
+          role: selectedRole 
         });
         return;
       }
 
-      // If not demo credentials, show error (API mode would go here later)
-      toast.error('Invalid credentials. Use demo accounts: admin@demo.com / admin123');
+      // If credentials don't match
+      toast.error('Invalid username or password');
       
     } catch (error: any) {
       console.error('Login error:', error);
@@ -221,11 +210,11 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
 
                 <form onSubmit={handleLogin} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-white">Email</Label>
+                    <Label htmlFor="username" className="text-white">Username</Label>
                     <Input
-                      id="email"
-                      type="email"
-                      placeholder="Enter your email"
+                      id="username"
+                      type="text"
+                      placeholder="Enter your username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="bg-white/10 border-white/20 text-white placeholder:text-purple-300"
@@ -255,18 +244,6 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
                     <ChevronRight className="w-5 h-5 ml-2" />
                   </Button>
                 </form>
-
-                {/* Demo Credentials Helper */}
-                <div className="mt-6 p-4 bg-white/5 border border-white/10 rounded-xl">
-                  <p className="text-purple-200 text-sm font-semibold mb-2">Demo Credentials:</p>
-                  <div className="space-y-1 text-xs text-purple-300">
-                    <p><strong className="text-purple-100">Admin:</strong> admin@demo.com / admin123</p>
-                    <p><strong className="text-purple-100">Manager:</strong> manager@demo.com / manager123</p>
-                    <p><strong className="text-purple-100">Supplier:</strong> supplier@demo.com / supplier123</p>
-                    <p><strong className="text-purple-100">Customer:</strong> customer@demo.com / customer123</p>
-                    <p><strong className="text-purple-100">Driver:</strong> driver@demo.com / driver123</p>
-                  </div>
-                </div>
               </div>
             </div>
           </motion.div>
